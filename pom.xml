@@ -5,11 +5,11 @@
     <groupId>org.eclipse.hudson.plugins</groupId>
     <artifactId>hudson-plugin-parent</artifactId>
     <version>3.0.0</version>
-    <relativePath/>
+    <relativePath />
   </parent>
   <groupId>org.hudsonci.plugins</groupId>
   <artifactId>jacoco</artifactId>
-  <version>1.0.10-h-1-SNAPSHOT</version>
+  <version>1.0.10-h-1</version>
   <packaging>hpi</packaging>
   <name>Hudson JaCoCo plugin</name>
   <description>Hudson JaCoCo plugin</description>
@@ -251,7 +251,7 @@
                     </configuration>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -268,7 +268,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -284,7 +284,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -299,7 +299,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <execute/>
+                    <execute />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -314,7 +314,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -327,7 +327,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -341,7 +341,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -354,7 +354,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -411,30 +411,30 @@
                 </goals>
                 <configuration>
                   <target>
-                    <taskdef classname="org.jacoco.ant.ReportTask" classpathref="maven.plugin.classpath" name="jacoco-report"/>
-                    <taskdef classpathref="maven.runtime.classpath" resource="net/sf/antcontrib/antcontrib.properties"/>
-                    <available file="${project.basedir}/target/jacoco.exec" property="jacoco.exec.file.exists"/>
-                    <echo message="${project.basedir}/target/jacoco.exec"/>
+                    <taskdef classname="org.jacoco.ant.ReportTask" classpathref="maven.plugin.classpath" name="jacoco-report" />
+                    <taskdef classpathref="maven.runtime.classpath" resource="net/sf/antcontrib/antcontrib.properties" />
+                    <available file="${project.basedir}/target/jacoco.exec" property="jacoco.exec.file.exists" />
+                    <echo message="${project.basedir}/target/jacoco.exec" />
                     <if>
-                      <equals arg1="${jacoco.exec.file.exists}" arg2="true"/>
+                      <equals arg1="${jacoco.exec.file.exists}" arg2="true" />
                       <then>
-                        <echo message="Executing jacoco report"/>
+                        <echo message="Executing jacoco report" />
                         <trycatch>
                           <try>
                             <jacoco-report>
                               <executiondata>
-                                <file file="${project.basedir}/target/jacoco.exec"/>
+                                <file file="${project.basedir}/target/jacoco.exec" />
                               </executiondata>
                               <structure name="Minerva">
                                 <classfiles>
-                                  <fileset dir="${project.basedir}/target/classes"/>
+                                  <fileset dir="${project.basedir}/target/classes" />
                                 </classfiles>
                                 <sourcefiles encoding="UTF-8">
-                                  <fileset dir="${project.basedir}/src/main/java"/>
+                                  <fileset dir="${project.basedir}/src/main/java" />
                                 </sourcefiles>
                               </structure>
-                              <html destdir="${project.basedir}/target/jacoco/report"/>
-                              <xml destfile="${project.basedir}/target/jacoco/report/jacoco.xml"/>
+                              <html destdir="${project.basedir}/target/jacoco/report" />
+                              <xml destfile="${project.basedir}/target/jacoco/report/jacoco.xml" />
                             </jacoco-report>
                           </try>
                           <catch>
@@ -443,7 +443,7 @@
                         </trycatch>
                       </then>
                       <else>
-                        <echo message="No jacoco.exec file found."/>
+                        <echo message="No jacoco.exec file found." />
                       </else>
                     </if>
                   </target>
