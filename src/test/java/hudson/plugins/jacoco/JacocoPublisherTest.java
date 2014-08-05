@@ -1,9 +1,6 @@
 package hudson.plugins.jacoco;
 
 import hudson.FilePath;
-import hudson.plugins.jacoco.JacocoPublisher;
-
-import junit.framework.Assert;
 
 import java.io.File;
 
@@ -14,7 +11,7 @@ import org.junit.Test;
  * @autor manuel_carrasco
  */
 public class JacocoPublisherTest extends AbstractJacocoTestBase {
-	/*
+
 	@Test
 	public void testLocateReports() throws Exception {
 
@@ -48,22 +45,25 @@ public class JacocoPublisherTest extends AbstractJacocoTestBase {
 		f5.deleteOnExit();
 		f6.deleteOnExit();
 		
+		/*
 		// Look for files in the entire workspace recursively without providing 
 		// the includes parameter
 		FilePath[] reports = JacocoPublisher.locateCoverageReports(workspace, "**e/jacoco*.xml");
-		Assert.assertEquals(2 , reports.length);
+		assertEquals(2 , reports.length);
 
 		// Generate a includes string and look for files 
 		String includes = f1.getName() + "; " + f2.getName() + "; " + d1.getName();
 		reports = JacocoPublisher.locateCoverageReports(workspace, includes);
-		Assert.assertEquals(3, reports.length);
+		assertEquals(3, reports.length);
 
 		// Save files in local workspace
 		FilePath local = workspace.child("coverage_localfolder");
 		JacocoPublisher.saveCoverageReports(local, reports);
-		Assert.assertEquals(3, local.list().size());
+		assertEquals(3, local.list().size());
+		
 		local.deleteRecursive();
+		 */
 
-	}*/
+	}
 
 }

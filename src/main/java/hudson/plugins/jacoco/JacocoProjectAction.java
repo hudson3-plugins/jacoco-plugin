@@ -1,16 +1,14 @@
 package hudson.plugins.jacoco;
 
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Result;
-import hudson.plugins.jacoco.Messages;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+
+import java.io.IOException;
 
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-
-import java.io.IOException;
-import java.util.logging.Logger;
 
 /**
  * Project view extension by JaCoCo plugin.
@@ -41,7 +39,7 @@ public final class JacocoProjectAction implements Action {
      */
     public JacocoBuildAction getLastResult() {
         for (AbstractBuild<?, ?> b = project.getLastBuild(); b != null; b = b.getPreviousBuild()) {
-            if (b.getResult() == Result.FAILURE)
+            if (b.getResult() == Result.FAILURE || b.getResult() == Result.ABORTED)
                 continue;
             JacocoBuildAction r = b.getAction(JacocoBuildAction.class);
             if (r != null)
@@ -54,5 +52,6 @@ public final class JacocoProjectAction implements Action {
        if (getLastResult() != null)
           getLastResult().doGraph(req,rsp);
     }
-    private static final Logger logger = Logger.getLogger(JacocoBuildAction.class.getName());
+
+    //private static final Logger logger = Logger.getLogger(JacocoBuildAction.class.getName());
 }

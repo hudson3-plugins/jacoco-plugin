@@ -34,13 +34,13 @@
       		<col width="39%"/>
       <tr>
         <td>Inclusions (e.g.: **/*.class)</td>
-        <td>Exclusions (e.g.: **/*Test*)</td>
+        <td>Exclusions (e.g.: **/*Test*.class)</td>
       </tr>
       
       <tr>
         
         <td>
-          <f:textbox field="inclusionPattern"  default=""/>
+          <f:textbox field="inclusionPattern" default=""/>
         </td>
         
         <td>
@@ -77,22 +77,22 @@
 	                         title="${%health.100.title}"/>
 	                </th>
 	                <td>
-	                    <f:textbox field="maximumInstructionCoverage" default="80" />
+	                    <f:textbox field="maximumInstructionCoverage" default="0" />
 	                </td>
 	                <td>
-	                    <f:textbox field="maximumBranchCoverage" default="80" />
+	                    <f:textbox field="maximumBranchCoverage" default="0" />
 	                </td>
 	                <td>
-	                    <f:textbox field="maximumComplexityCoverage" default="80" />
+	                    <f:textbox field="maximumComplexityCoverage" default="0" />
 	                </td>
 	                <td>
-	                    <f:textbox field="maximumLineCoverage" default="80" />
+	                    <f:textbox field="maximumLineCoverage" default="0" />
 	                </td>
 	                <td>
-	                    <f:textbox field="maximumMethodCoverage" default="70" />
+	                    <f:textbox field="maximumMethodCoverage" default="0" />
 	                </td>
 	                <td>
-	                    <f:textbox field="maximumClassCoverage" default="100" />
+	                    <f:textbox field="maximumClassCoverage" default="0" />
 	                </td>
 	            </tr>
 	            <tr>
@@ -121,5 +121,8 @@
 	            </tr>
 	        </tbody>
 	    </table>
+  </f:entry>
+  <f:entry field="changeBuildStatus">
+   <f:checkbox checked="${instance.selected}" title="Change build status according the thresholds"/>
   </f:entry>
 </j:jelly>

@@ -3,25 +3,31 @@ package hudson.plugins.jacoco.report;
 import hudson.model.AbstractBuild;
 import hudson.plugins.jacoco.ExecutionFileLoader;
 import hudson.plugins.jacoco.JacocoBuildAction;
+import hudson.plugins.jacoco.JacocoHealthReportThresholds;
 import hudson.plugins.jacoco.model.Coverage;
-import hudson.plugins.jacoco.model.CoverageElement;
-import hudson.plugins.jacoco.model.CoverageObject;
-import hudson.util.IOException2;
+import org.kohsuke.stapler.HttpResponses;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-import org.jacoco.core.analysis.IBundleCoverage;
+import javax.servlet.ServletException;
+
 import org.jacoco.core.analysis.IClassCoverage;
-import org.jacoco.core.analysis.ICoverageNode;
 import org.jacoco.core.analysis.IMethodCoverage;
 import org.jacoco.core.analysis.IPackageCoverage;
+import org.jacoco.core.tools.ExecFileLoader;
+import org.jacoco.core.data.ExecutionDataWriter;
+import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.WebMethod;
+import org.objectweb.asm.Type;
 
 /**
  * Root object of the coverage report.
@@ -36,7 +42,14 @@ public final class CoverageReport extends AggregatedReport<CoverageReport/*dummy
 		this.action = action;
 		setName("Jacoco");
 	}
-
+	
+//	private String instructionColor;
+//	private String classColor;
+//	private String branchColor;
+//	private String complexityColor;
+//	private String lineColor;
+//	private String methodColor;
+	public JacocoHealthReportThresholds healthReports;
 
 	/**
 	 * Loads the exec files using JaCoCo API. Creates the reporting objects and the report tree.
@@ -45,7 +58,7 @@ public final class CoverageReport extends AggregatedReport<CoverageReport/*dummy
 	 * @param reports
 	 * @throws IOException
 	 */
-	public CoverageReport(JacocoBuildAction action, ExecutionFileLoader executionFileLoader ) throws IOException {
+	public CoverageReport(JacocoBuildAction action, ExecutionFileLoader executionFileLoader ) {
 		this(action);
 		try {
 
@@ -66,15 +79,17 @@ public final class CoverageReport extends AggregatedReport<CoverageReport/*dummy
 						ClassReport classReport = new ClassReport();
 						classReport.setName(classCov.getName());
 						classReport.setParent(packageReport);
+                        classReport.setSrcFileInfo(classCov, executionFileLoader.getSrcDir() + "/" + packageCov.getName() + "/" + classCov.getSourceFileName());
+
 						packageReport.setCoverage(classReport, classCov);
 
 						ArrayList<IMethodCoverage> methodList = new ArrayList<IMethodCoverage>(classCov.getMethods());
 						for (IMethodCoverage methodCov: methodList) {
 							MethodReport methodReport = new MethodReport();
-							methodReport.setName(methodCov.getName());
+							methodReport.setName(getMethodName(classCov, methodCov));
 							methodReport.setParent(classReport);
 							classReport.setCoverage(methodReport, methodCov);
-							methodReport.setSrcFileInfo(methodCov, executionFileLoader.getSrcDir()+ "/" + packageCov.getName() + "/"+ classCov.getSourceFileName());
+							methodReport.setSrcFileInfo(methodCov);
 
 							classReport.add(methodReport);
 						}
@@ -92,13 +107,99 @@ public final class CoverageReport extends AggregatedReport<CoverageReport/*dummy
 		}
 	}
 
+    /**
+     * From Jacoco: Checks if a class name is anonymous or not.
+     * 
+     * @param vmname
+     * @return
+     */
+    private boolean isAnonymous(final String vmname) {
+        final int dollarPosition = vmname.lastIndexOf('$');
+        if (dollarPosition == -1) {
+            return false;
+        }
+        final int internalPosition = dollarPosition + 1;
+        if (internalPosition == vmname.length()) {
+            // shouldn't happen for classes compiled from Java source
+            return false;
+        }
+        // assume non-identifier start character for anonymous classes
+        final char start = vmname.charAt(internalPosition);
+        return !Character.isJavaIdentifierStart(start);
+    }
 
-	static NumberFormat dataFormat = new DecimalFormat("000.00", new DecimalFormatSymbols(Locale.US));
+    /**
+     * Returns a method name for the method, including possible parameter names.
+     * 
+     * @param classCov
+     *            Coverage Information about the Class
+     * @param methodCov
+     *            Coverage Information about the Method
+     * @return method name
+     */
+    private String getMethodName(IClassCoverage classCov, IMethodCoverage methodCov) {
+        if ("<clinit>".equals(methodCov.getName()))
+            return "static {...}";
+
+        StringBuilder sb = new StringBuilder();
+        if ("<init>".equals(methodCov.getName())) {
+            if (isAnonymous(classCov.getName())) {
+                return "{...}";
+            }
+            
+            int pos = classCov.getName().lastIndexOf('/');
+            String name = pos == -1 ? classCov.getName() : classCov.getName().substring(pos + 1);
+            sb.append(name.replace('$', '.'));
+        } else {
+            sb.append(methodCov.getName());
+        }
+        
+        sb.append('(');
+        final Type[] arguments = Type.getArgumentTypes(methodCov.getDesc());
+        boolean comma = false;
+        for(final Type arg : arguments) {
+            if(comma) {
+                sb.append(", ");
+            } else {
+                comma = true;
+            }
+            
+            String name = arg.getClassName();
+            int pos = name.lastIndexOf('.');
+            String shortname = pos == -1 ? name : name.substring(pos + 1);
+            sb.append(shortname.replace('$', '.'));
+        }
+        sb.append(')');
+
+        return sb.toString();
+    }
+
+    static NumberFormat dataFormat = new DecimalFormat("000.00", new DecimalFormatSymbols(Locale.US));
 	static NumberFormat percentFormat = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.US));
 	static NumberFormat intFormat = new DecimalFormat("0", new DecimalFormatSymbols(Locale.US));
+	
+	@Override
+	protected void printRatioCell(boolean failed, Coverage ratio, StringBuilder buf) {
+		if (ratio != null && ratio.isInitialized()) {
+			//String className = "nowrap" + (failed ? " red" : "");
+			String bgColor = "#FFFFFF";
+			
+			if (JacocoHealthReportThresholds.RESULT.BETWEENMINMAX == healthReports.getResultByTypeAndRatio(ratio)) {
+				bgColor = "#FF8000";
+			} else if (JacocoHealthReportThresholds.RESULT.BELLOWMINIMUM == healthReports.getResultByTypeAndRatio(ratio)) {
+				bgColor = "#FF0000";
+			}
+			buf.append("<td bgcolor=\" "+ bgColor +" \" class='").append("").append("'");
+			buf.append(" data='").append(dataFormat.format(ratio.getPercentageFloat()));
+			buf.append("'>\n");
+			printRatioTable(ratio, buf);
+			buf.append("</td>\n");
+		}
+	}
+	
 	@Override
 	protected void printRatioTable(Coverage ratio, StringBuilder buf){
-		String percent = percentFormat.format(ratio.getPercentageFloat());
+		//String percent = percentFormat.format(ratio.getPercentageFloat());
 		String numerator = intFormat.format(ratio.getMissed());
 		String denominator = intFormat.format(ratio.getCovered());
 
@@ -106,7 +207,7 @@ public final class CoverageReport extends AggregatedReport<CoverageReport/*dummy
 		.append("<td width='40px' class='data'>").append(ratio.getPercentage()).append("%</td>")
 		.append("<td class='percentgraph'>")
 		.append("<div class='percentgraph' style='width: ").append(100).append("px;'>")
-		.append("<div class='redbar' style='width: ").append(ratio.getMissed() > ratio.getCovered() ? 100 :  ((float)ratio.getMissed()/(float)ratio.getCovered())*100).append("px;'>")
+		.append("<div class='redbar' style='width: ").append(((float)ratio.getMissed()/(float)(ratio.getMissed() + ratio.getCovered()))*100).append("px;'>")
 		.append("</div></div></td></tr>" +
 				"<tr>").append("<span class='text'>").append("<b>M:</b> "+numerator).append(" ").append("<b>C:</b> "+ denominator).append("</span></tr>").append("</table>");
 	}
@@ -116,15 +217,58 @@ public final class CoverageReport extends AggregatedReport<CoverageReport/*dummy
 	@Override
 	public CoverageReport getPreviousResult() {
 		JacocoBuildAction prev = action.getPreviousResult();
-		if(prev!=null)
+		if(prev!=null) {
 			return prev.getResult();
-		else
-			return null;
+		}
+		
+		return null;
 	}
 
 	@Override
 	public AbstractBuild<?,?> getBuild() {
 		return action.owner;
+	}
+
+    /**
+     * Serves a single jacoco.exec file that merges all that have been recorded.
+     */
+    @WebMethod(name="jacoco.exec")
+    public HttpResponse doJacocoExec() throws IOException {
+        final List<File> files = action.getJacocoReport().getExecFiles();
+
+        switch (files.size()) {
+        case 0:
+            return HttpResponses.error(404, "No jacoco.exec file recorded");
+        case 1:
+            return HttpResponses.staticResource(files.get(0).toURI().toURL());
+        default:
+            // TODO: perhaps we want to cache the merged result?
+            return new HttpResponse() {
+                public void generateResponse(StaplerRequest req, StaplerResponse rsp, Object node) throws IOException, ServletException {
+                    ExecFileLoader loader = new ExecFileLoader();
+                    for (File exec : files) {
+                        loader.load(exec);
+                    }
+                    rsp.setContentType("application/octet-stream");
+                    final ExecutionDataWriter dataWriter = new ExecutionDataWriter(rsp.getOutputStream());
+                    loader.getSessionInfoStore().accept(dataWriter);
+                    loader.getExecutionDataStore().accept(dataWriter);
+                }
+            };
+        }
+    }
+
+
+	public void setThresholds(JacocoHealthReportThresholds healthReports) {
+		this.healthReports = healthReports;
+		/*if (healthReports.getMaxBranch() < branch.getPercentage()) {
+			branchColor = "#000000";
+		} else if (healthReports.getMinBranch() < branch.getPercentage()) {
+			branchColor = "#FF8000";
+		} else {
+			branchColor = "#FF0000";
+		}
+		*/
 	}
 
 

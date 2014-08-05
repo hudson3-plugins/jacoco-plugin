@@ -5,10 +5,8 @@ import hudson.FilePath;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -28,11 +26,9 @@ public class ExecutionFileLoader implements Serializable {
 		private String name;
 		private FilePath srcDir;
 		private FilePath classDir;
-		private FilePath execFile;
 		private FilePath generatedHTMLsDir;
 		private String[] includes;
 		private String[] excludes;
-		private String title;
 		
 		private ExecutionDataStore executionDataStore;
 		private SessionInfoStore sessionInfoStore;
@@ -79,31 +75,26 @@ public class ExecutionFileLoader implements Serializable {
 		public void setClassDir(FilePath classDir) {
 			this.classDir = classDir;
 		}
-		public FilePath getExecFile() {
-			return execFile;
-		}
-		public void setExecFile(FilePath execFile) {
-			this.execFile = execFile;
-		}
 		private void loadExecutionData() throws IOException {
 			
 			executionDataStore = new ExecutionDataStore();
 			sessionInfoStore = new SessionInfoStore();
 			
-			for (final Iterator<FilePath> i = execFiles.iterator(); i.hasNext();) {
-				InputStream isc = null;
+			for (FilePath filePath : execFiles) {
+				File executionDataFile = new File(filePath.getRemote());
 				try {
-					File executionDataFile = new File(i.next().getRemote());
 					final FileInputStream fis = new FileInputStream(executionDataFile);
-	                final ExecutionDataReader reader = new ExecutionDataReader(fis);
-	                reader.setSessionInfoVisitor(sessionInfoStore);
-	                reader.setExecutionDataVisitor(executionDataStore);
-	                reader.read();
-	                isc = fis;
+					try {
+	                    final ExecutionDataReader reader = new ExecutionDataReader(fis);
+	                    reader.setSessionInfoVisitor(sessionInfoStore);
+	                    reader.setExecutionDataVisitor(executionDataStore);
+	                    reader.read();
+					} finally {
+					    fis.close();
+					}
 	            } catch (final IOException e) {
+	            	System.out.println("While reading execution data-file: " + executionDataFile);
 	                e.printStackTrace();
-	            } finally {
-	            	org.apache.tools.ant.util.FileUtils.close(isc);
 	            }
 	        }
 		}
@@ -114,11 +105,20 @@ public class ExecutionFileLoader implements Serializable {
 			final Analyzer analyzer = new Analyzer(executionDataStore,
 					coverageBuilder);
 			
-			if ((includes==null)|| ("".equals(includes[0]))) {
+			if (includes==null) {
 				String[] in = {"**"};
 				includes = in;
-			}
-			if ((excludes==null) || ("".equals(excludes[0]))) {
+			} else if (includes.length == 0) {
+				String[] in = {"**"};
+				includes = in;
+			} else if ((includes.length == 1) && ("".equals(includes[0]))) {
+				String[] in = {"**"};
+				includes = in;
+			} 
+			if (excludes==null) {
+				String[] ex = {"{0}"};
+				excludes = ex;
+			}  else if (excludes.length==0) {
 				String[] ex = {"{0}"};
 				excludes = ex;
 			}

@@ -1,25 +1,16 @@
 package hudson.plugins.jacoco;
 
-import static org.junit.Assert.assertTrue;
-
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import hudson.model.FreeStyleProject;
-import hudson.plugins.jacoco.JacocoHealthReportThresholds;
-import hudson.plugins.jacoco.JacocoPublisher;
-
 import org.junit.Test;
-import org.jvnet.hudson.test.HudsonTestCase;
 
 /**
  * Test for Project configuration.
  * @author Seiji Sogabe
  */
-public class JacocoConfigSubmitTest extends HudsonTestCase {
+public class JacocoConfigSubmitTest /*extends HudsonTestCase*/ {
 
 	@Test
     public void testIncludeIsEmpty() throws Exception {
-       /* WebClient client = new WebClient();
+       /*WebClient client = new WebClient();
         client.setThrowExceptionOnFailingStatusCode(false);
 
         FreeStyleProject fp = createFreeStyleProject();
@@ -32,8 +23,7 @@ public class JacocoConfigSubmitTest extends HudsonTestCase {
 
         JacocoPublisher publisher = (JacocoPublisher) fp.getPublisher(JacocoPublisher.DESCRIPTOR);
 
-        assertEquals("", publisher.includes);*/
-		
+        assertEquals("", publisher.includes);*/		
     }
     
 	@Test
@@ -81,7 +71,6 @@ public class JacocoConfigSubmitTest extends HudsonTestCase {
         assertEquals(70, thresholds.getMaxBranch());
         assertEquals(70, thresholds.getMaxInstruction());
         assertEquals(70, thresholds.getMaxComplexity());*/
-		assertTrue(true);
     }    
 
 	@Test

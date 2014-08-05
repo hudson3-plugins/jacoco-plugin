@@ -6,7 +6,7 @@ import hudson.model.Job;
 import hudson.model.Run;
 import hudson.plugins.jacoco.JacocoBuildAction;
 import hudson.plugins.jacoco.model.Coverage;
-import hudson.plugins.jacoco.report.CoverageReport;
+import hudson.views.ListViewColumnDescriptor;
 import hudson.views.ListViewColumn;
 
 import java.awt.Color;
@@ -27,15 +27,24 @@ public class JaCoCoColumn extends ListViewColumn {
 	public JaCoCoColumn() {
 	}
 
-	public String getPercent(final Job<?, ?> job) {
+	public boolean hasCoverage(final Job<?, ?> job) {
 		final Run<?, ?> lastSuccessfulBuild = job.getLastSuccessfulBuild();
+		if (lastSuccessfulBuild == null) {
+			return false;
+		} else if (lastSuccessfulBuild.getAction(JacocoBuildAction.class) == null){
+			return false;
+		}
+		
+		return true;
+	}
+
+	public String getPercent(final Job<?, ?> job) {
 		final StringBuilder stringBuilder = new StringBuilder();
 
-		if (lastSuccessfulBuild == null) {
-			stringBuilder.append("N/A");
-		} else if (lastSuccessfulBuild.getAction(JacocoBuildAction.class) == null){
+		if (!hasCoverage(job)) {
 			stringBuilder.append("N/A");
 		} else {
+			final Run<?, ?> lastSuccessfulBuild = job.getLastSuccessfulBuild();
 			final Double percent = getLinePercent(lastSuccessfulBuild);
 			stringBuilder.append(percent);
 		}
@@ -43,17 +52,27 @@ public class JaCoCoColumn extends ListViewColumn {
 		return stringBuilder.toString();
 	}
 
-	public String getLineColor(final BigDecimal amount) {
+	public String getLineColor(final Job<?, ?> job, final BigDecimal amount) {
 		if (amount == null) {
 			return null;
 		}
+
+		if(job != null && !hasCoverage(job)) {
+			return CoverageRange.NA.getLineHexString();
+		}
+
 		return CoverageRange.valueOf(amount.doubleValue()).getLineHexString();
 	}
 
-	public String getFillColor(final BigDecimal amount) {
+	public String getFillColor(final Job<?, ?> job, final BigDecimal amount) {
 		if (amount == null) {
 			return null;
 		}
+
+		if(job != null && !hasCoverage(job)) {
+			return CoverageRange.NA.getFillHexString();
+		}
+
 		final Color c = CoverageRange.fillColorOf(amount.doubleValue());
 		return CoverageRange.colorAsHexString(c);
 	}
@@ -101,11 +120,16 @@ public class JaCoCoColumn extends ListViewColumn {
 		return DESCRIPTOR;
 	}
 
-	private static class DescriptorImpl extends Descriptor<ListViewColumn> {
+	private static class DescriptorImpl extends ListViewColumnDescriptor {
 		@Override
 		public ListViewColumn newInstance(final StaplerRequest req,
 				final JSONObject formData) throws FormException {
 			return new JaCoCoColumn();
+		}
+		
+		@Override
+		public boolean shownByDefault() {
+			return false;
 		}
 
 		@Override

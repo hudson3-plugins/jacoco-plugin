@@ -1,28 +1,31 @@
 package hudson.plugins.jacoco;
 
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Ignore;
 import org.junit.Test;
-
-import hudson.plugins.jacoco.report.ClassReport;
-import hudson.plugins.jacoco.report.CoverageReport;
-import hudson.plugins.jacoco.report.MethodReport;
-import hudson.plugins.jacoco.report.PackageReport;
-import hudson.plugins.jacoco.report.SourceFileReport;
-import static org.junit.Assert.*;
 
 /**
  * @author Kohsuke Kawaguchi
  * @author David Carver - Refactored for cleaner seperation of tests
  */
 public class CoverageReportTest extends AbstractJacocoTestBase {
+    //private Map<Type, Coverage> map = Collections.<CoverageElement.Type, Coverage>emptyMap();
 	
 	@Test
     public void testLoad() throws Exception {
-        /*CoverageReport r = new CoverageReport(null, getClass().getResourceAsStream("jacoco.xml"));
+        /*final BuildListener listener = EasyMock.createNiceMock(BuildListener.class);
+        EasyMock.replay(listener);
+
+        JacocoBuildAction action = new JacocoBuildAction(null, null, map, null, listener, null, null);
+        
+        CoverageReport r = new CoverageReport(action, new ExecutionFileLoader());
         PackageReport pkg = r.getChildren().get("hudson.plugins.jacoco");
         System.out.println(pkg);
         assertCoverage(pkg.getLineCoverage(), 393, 196);
-        assertEquals(595, r.getLineCoverage().getMissed());*/
+        assertEquals(595, r.getLineCoverage().getMissed());
+        
+        EasyMock.verify(listener);*/
     }
 
     /**
