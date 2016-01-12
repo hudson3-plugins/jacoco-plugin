@@ -185,7 +185,6 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
             <executions>
-
                <!-- Attention Eclipse users: if you see an error here, you 
                   have to install the M2E buildhelper plugin. -->
                <execution>
@@ -226,7 +225,6 @@
 		 <plugin>
 			  <groupId>org.eclipse.hudson.tools</groupId>
 			  <artifactId>maven-hpi-plugin</artifactId>
-       <version>3.0.0</version>
 			  <executions>
 				 <execution>
 				   <phase>compile</phase>
@@ -235,7 +233,6 @@
 				   </goals>
 				 </execution>
 			   </executions>
-
 			  <configuration>
 				<pluginFirstClassLoader>true</pluginFirstClassLoader>
 				<maskClasses>org.objectweb.asm.</maskClasses>
@@ -259,6 +256,7 @@
                               <artifactId>maven-hpi-plugin</artifactId>
                               <versionRange>[1.64,)</versionRange>
                               <goals>
+                                 <goal>hpi</goal>
                                  <goal>apt-compile</goal>
                                  <goal>insert-test</goal>
                                  <goal>
@@ -267,12 +265,6 @@
                                  <goal>test-hpl</goal>
                                  <goal>validate</goal>
                               </goals>
-							  <configuration>
-								<pluginFirstClassLoader>true</pluginFirstClassLoader>
-							  
-							  </configuration>
-							  
-							  
                            </pluginExecutionFilter>
                            <action>
                               <ignore />
