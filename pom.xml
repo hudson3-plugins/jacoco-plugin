@@ -225,6 +225,7 @@
 		 <plugin>
 			  <groupId>org.eclipse.hudson.tools</groupId>
 			  <artifactId>maven-hpi-plugin</artifactId>
+			  <version>3.0.3</version>
 			  <executions>
 				 <execution>
 				   <phase>compile</phase>
